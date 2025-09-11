@@ -30,10 +30,14 @@ import ModalNeedSupport from './ModalNeedSupport';
 import dayjs from 'dayjs';
 import { getAttendanceStatus } from '@/plugins/utils/attendance';
 import { formatTime } from '@/plugins/utils/utils';
+import { signOut } from 'next-auth/react';
+import { routes } from '@/config/routes';
+import { useRouter } from 'next/navigation';
 
 const { useBreakpoint } = Grid;
 
 export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => void }) {
+    const router = useRouter()
     const [second, setSecond] = useState(0)
     const [isRunning, setIsRunning] = useState(false)
     const [isScrolled, setIsScrolled] = useState(false);
@@ -41,6 +45,7 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
     const [openModalWorking, setOpenModalWorking] = useState(false)
     const [openModalNeedSupport, setOpenModalNeedSupport] = useState(false)
     const [attendanceType, setAttendanceType] = useState('')
+    const [isLoggingOut, setIsLoggingOut] = useState(false)
     const screens = useBreakpoint();
     const isMobile = !screens.lg;
     const [formData, setFormData] = useState({
@@ -171,6 +176,37 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
         setAttendanceType('');
     };
 
+    const handleLogout = async () => {
+
+        if (isLoggingOut) return;
+        try {
+            setIsLoggingOut(true);
+            localStorage.clear();
+            if (typeof window !== 'undefined') {
+                sessionStorage.clear();
+            }
+
+            setIsRunning(false);
+            setSecond(0);
+
+            await signOut({
+                callbackUrl: routes.signIn,
+                redirect: true
+
+            });
+
+        } catch (error) {
+            console.error('Logout error:', error);
+            // Fallback: force redirect if signOut fails
+            localStorage.clear();
+            sessionStorage.clear();
+            router.push(routes.signIn);
+
+        } finally {
+            setIsLoggingOut(false);
+        }
+    }
+
     const items: MenuProps['items'] = [
         {
             key: 'support',
@@ -190,7 +226,13 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
         },
         {
             key: 'logout',
-            label: <Button type="text" icon={<Image src={LogoutIcon} alt="gear-icon" width={15} />}>Logout</Button>
+            label: <Button
+                type="text"
+                icon={<Image src={LogoutIcon} alt="gear-icon" width={15} />}
+                onClick={handleLogout}
+            >
+                Logout
+            </Button>
         },
     ];
 

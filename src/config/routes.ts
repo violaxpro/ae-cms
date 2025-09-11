@@ -1,5 +1,6 @@
 export const routes = {
   eCommerce: {
+
     dashboard: '/',
     products: '/ecommerce/products-services',
     createProduct: '/ecommerce/products-services/create',
@@ -304,5 +305,5 @@ export const routes = {
     otp4: '/auth/otp-4',
     otp5: '/auth/otp-5',
   },
-  signIn: '/signin',
+  signIn: '/auth/signin',
 };

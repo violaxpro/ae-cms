@@ -4,6 +4,10 @@ import GoogleProvider from 'next-auth/providers/google';
 import { env } from '@/env.mjs';
 import isEqual from 'lodash/isEqual';
 import { pagesOptions } from './pages-options';
+import { login } from '@/services/auth-service';
+import { LoginParam } from '@/plugins/types/auth-type';
+import axios from 'axios';
+export const API_URL = process.env.NEXT_PUBLIC_API;
 
 export const authOptions: NextAuthOptions = {
   // debug: true,
@@ -22,12 +26,15 @@ export const authOptions: NextAuthOptions = {
           ...session.user,
           id: token.idToken as string,
         },
+        accessToken: token.accessToken,
       };
     },
     async jwt({ token, user }) {
       if (user) {
         // return user as JWT
+        token.accessToken = (user as any).accessToken;
         token.user = user;
+        token.id = (user as any).id;
       }
       return token;
     },
@@ -48,23 +55,70 @@ export const authOptions: NextAuthOptions = {
       name: 'Credentials',
       credentials: {},
       async authorize(credentials: any) {
+        try {
+          const loginEndpoint = `${API_URL}/admin/auth/login`;
+          const payload: any = {
+            email: credentials.email,
+            password: credentials.password,
+          }
+          const response = await axios.post(loginEndpoint, payload);
+
+          const apiResponse = response.data;
+          console.log(apiResponse)
+
+
+
+          console.log("==================HASIL AUTH=====================")
+
+          console.log(apiResponse)
+
+          console.log("==================HASIL AUTH=====================")
+
+
+
+          if (apiResponse && apiResponse.data) {
+
+            // Return the user object with the correct structure
+
+            // axios.defaults.headers.common['Authorization'] = `Bearer ${apiResponse.data.accessToken}`;
+
+            // http.defaults.headers.common['Authorization'] = `Bearer ${apiResponse.data.accessToken}`;
+            return {
+              id: apiResponse.data.id,
+              accessToken: apiResponse.data.access_token,
+              role: apiResponse.data.role,
+            };
+
+          } else {
+            return null;
+          }
+
+        } catch (error: any) {
+
+          const errorMessage = error.response?.data?.message || 'Invalid credentials';
+
+          console.log(error.response)
+
+          throw new Error(errorMessage);
+
+        }
         // You need to provide your own logic here that takes the credentials
         // submitted and returns either a object representing a user or value
         // that is false/null if the credentials are invalid
-        const user = {
-          email: 'admin@admin.com',
-          password: 'admin',
-        };
+        // const user = {
+        //   email: 'admin@admin.com',
+        //   password: 'admin',
+        // };
 
-        if (
-          isEqual(user, {
-            email: credentials?.email,
-            password: credentials?.password,
-          })
-        ) {
-          return user as any;
-        }
-        return null;
+        // if (
+        //   isEqual(user, {
+        //     email: credentials?.email,
+        //     password: credentials?.password,
+        //   })
+        // ) {
+        //   return user as any;
+        // }
+        // return null;
       },
     }),
     GoogleProvider({

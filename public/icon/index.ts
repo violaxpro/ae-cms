@@ -154,6 +154,9 @@ export { default as WarningIcon } from './WarningIcon.svg'
 export { default as SuccessIcon } from './SuccessIcon.svg'
 export { default as EyeWhiteIcon } from './EyeWhiteIcon.svg'
 export { default as InfoIcon } from './InfoIcon.svg'
+export { default as LockGreyIcon } from './LockGreyIcon.svg'
+export { default as EyeInvisibleIcon } from './EyeInvisibleIcon.svg'
+export { default as EyeVisibleIcon } from './EyeVisibleIcon.svg'
 
 
 

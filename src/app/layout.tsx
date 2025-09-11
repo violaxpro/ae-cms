@@ -1,5 +1,5 @@
 
-// import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
 import AuthProvider from '@/app/api/auth/[...nextauth]/auth-provider';
 import { siteConfig } from '@/config/site.config';
@@ -24,7 +24,7 @@ export default async function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
-    // const session = await getServerSession(authOptions);
+    const session = await getServerSession(authOptions);
     return (
         <html
             lang="en"
@@ -42,7 +42,7 @@ export default async function RootLayout({
                     {children}
                 </ThemeProvider> */}
                 {/* </AuthProvider> */}
-                <Providers>{children}</Providers>
+                <Providers session={session}>{children}</Providers>
             </body>
         </html >
     );
