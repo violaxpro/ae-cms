@@ -21,7 +21,7 @@ export type OrderType = {
     user_id: number;
     billing_address_id: number;
     shipping_address_id: number;
-    invoice_number: string;
+    invoice_number?: string;
     order_reference: string;
     purchase_order_number: string;
     date: string; // format "YYYY-MM-DD"

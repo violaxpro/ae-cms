@@ -752,7 +752,7 @@ const DetailOrder = ({ slug, data }: { slug?: any, data: any }) => {
                             <InfoItem label='Payment Method' value='Bank Transfer' />
                             <InfoItem label='PO Number' value='PO-2025-0034' />
                             <InfoItem label='Sales Person' value='Sales A' />
-                            <InfoItem label='Order Status' value={toCapitalize(data.status)} textColor={statusMap[toCapitalize(data?.status)]?.textColor} />
+                            <InfoItem label='Order Status' value={toCapitalize(data?.status || '-')} textColor={statusMap[toCapitalize(data?.status)]?.textColor} />
                             <InfoItem label='Payment Status' value='Unpaid' />
                         </Card>
 

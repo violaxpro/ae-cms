@@ -27,10 +27,13 @@ import ModalAddress from './ModalAddress';
 import ModalCustomer from './ModalCustomer';
 import { addOrder, updateOrder } from '@/services/order-service';
 import { useCreateOrder } from '@/core/hooks/use-orders';
+import { notificationAtom } from '@/store/NotificationAtom';
+import { useAtom } from 'jotai';
 
 const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
     const router = useRouter()
-    const { contextHolder, notifySuccess } = useNotificationAntd();
+    const { contextHolder, notifySuccess, notifyError } = useNotificationAntd();
+    const [notification, setNotification] = useAtom(notificationAtom);
     const { mutate: createOrder } = useCreateOrder()
     const [showAddProduct, setShowAddProduct] = useState(false)
     const [productList, setProductList] = useState<any[]>([]);
@@ -60,9 +63,11 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
         tax_value: 0,
         tax_amount: 0,
         total_amount: 0,
+        profit: 0
     }]);
     const [editIndex, setEditIndex] = useState<number | null>(null)
     const [formData, setFormData] = useState({
+        invoice_number: initialValues ? initialValues.invoice_number : '',
         customer_name: initialValues ? initialValues.customer_name : '',
         user_id: initialValues ? initialValues.user_id : '',
         po_number: initialValues ? initialValues.purchase_order_number : 'PO-2025-0002',
@@ -117,8 +122,8 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
     const [formCustomer, setFormCustomer] = useState({
         name: '',
     })
-    const invoice_number = 'INV-2025-0004'
     const [openModalCustomer, setOpenModalCustomer] = useState(false)
+    const [selectedCustomer, setSelectedCustomer] = useState<any>(null)
 
     const breadcrumb = [
         { title: 'Sales' },
@@ -272,54 +277,50 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
         //         total: '',
         //     });
         // }
-        try {
-            const submitData = {
-                admin_created_id: 1,
-                admin_modified_id: null,
-                user_id: formData.user_id,
-                billing_address_id: formData.user_id,
-                shipping_address_id: formData.user_id,
-                invoice_number: invoice_number,
-                order_reference: formData.order_reference,
-                purchase_order_number: formData.po_number,
-                date: dayjs(formData.issues_date).format('YYYY-MM-DD'),
-                due_date: dayjs(formData.due_date).format('YYYY-MM-DD'),
-                amount: formData.amount,
-                tax_type: formData.tax_type,
-                tax_id: 1,
-                tax_value: formData.tax_rate,
-                tax_amount: formData.tax_amount,
-                coupon_code: formData.coupon_code,
-                coupon_discount_type: formData.coupon_discount_type,
-                coupon_discount_value: formData.coupon_discount_value,
-                coupon_discount_amount: formData.coupon_discount_amount,
-                discount_type: formData.discount_type,
-                discount_value: Number(formData.discount_value),
-                discount_amount: formData.discount_amount,
-                shipping_method_id: formData.shipping_method,
-                shipping_fee: formData.shipping_fee,
-                total_amount: formData.total_amount,
-                profit: formData.profit,
-                delivery_notes: formData.delivery_notes,
-                internal_notes: formData.internal_notes,
-                payment_method_id: formData.payment_method,
-                status: 'DRAFT',
-                payment_status: 'UNPAID',
-                items: formData.items,
 
-            }
+        const submitData = {
+            admin_created_id: 1,
+            admin_modified_id: null,
+            user_id: formData.user_id,
+            billing_address_id: formData.user_id,
+            shipping_address_id: formData.user_id,
+            invoice_number: formData.invoice_number,
+            order_reference: formData.order_reference,
+            purchase_order_number: formData.po_number,
+            date: dayjs(formData.issues_date).format('YYYY-MM-DD'),
+            due_date: dayjs(formData.due_date).format('YYYY-MM-DD'),
+            amount: formData.amount,
+            tax_type: formData.tax_type,
+            tax_id: 1,
+            tax_value: formData.tax_rate,
+            tax_amount: formData.tax_amount,
+            coupon_code: formData.coupon_code,
+            coupon_discount_type: formData.coupon_discount_type,
+            coupon_discount_value: formData.coupon_discount_value,
+            coupon_discount_amount: formData.coupon_discount_amount,
+            discount_type: formData.discount_type,
+            discount_value: Number(formData.discount_value),
+            discount_amount: formData.discount_amount,
+            shipping_method_id: formData.shipping_method,
+            shipping_fee: formData.shipping_fee,
+            total_amount: formData.total_amount,
+            profit: formData.profit,
+            delivery_notes: formData.delivery_notes,
+            internal_notes: formData.internal_notes,
+            payment_method_id: formData.payment_method,
+            status: 'DRAFT',
+            payment_status: 'UNPAID',
+            items: formData.items,
 
-            console.log(submitData)
-            // let response;
-            if (mode == 'edit') {
-                updateOrder(slug, submitData)
+        }
 
-            } else {
-                createOrder(submitData)
-            }
+        console.log(submitData)
+        // let response;
+        if (mode == 'edit') {
+            updateOrder(slug, submitData)
 
-        } catch (error) {
-            console.error(error)
+        } else {
+            createOrder(submitData)
         }
 
     }
@@ -347,10 +348,11 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
             buy_price: 0,
             price: 0,
             qty: 0,
-            tax_id: '',
+            tax_id: null,
             tax_value: 0,
             tax_amount: 0,
             total_amount: 0,
+            profit: 0
         };
 
         setFormData((prev: any) => ({
@@ -421,6 +423,10 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
         const totalTaxAmount = formData?.items?.length > 0
             ? formData?.items.reduce((acc: any, item: any) => acc + Number(item?.tax_amount || 0), 0)
             : 0;
+        const totalProfitAmount = formData?.items?.length > 0
+            ? formData?.items.reduce((acc: any, item: any) => acc + Number(item?.profit || 0), 0)
+            : 0;
+        console.log(totalProfitAmount, formData.items)
 
         const discount_value = Number(formData.discount_value || 0)
         const shipping_fee = Number(formData.shipping_fee || 0)
@@ -432,7 +438,8 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
             amount: newSubtotal,
             discount_amount: calculateDiscount,
             tax_amount: totalTaxAmount,
-            total_amount: total
+            total_amount: total,
+            profit: totalProfitAmount
         }));
     }, [formData.items,
     formData.tax_type,
@@ -455,9 +462,16 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
         label: customer.name,
         value: customer.id,
         billing_address: customer.billing_address,
-        shipping_address: customer.shipping_address
+        shipping_address: customer.shipping_address,
+        price_level: 'trade'
     }));
 
+    // useEffect(() => {
+    //     if (notification) {
+    //         notifyError(notification);
+    //         setNotification(null);
+    //     }
+    // }, [notification]);
 
     return (
         <>
@@ -488,7 +502,7 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
                         <h1 className='text-xl font-semibold'>Customer Details</h1>
                         <Divider />
                         <div className='grid gap-3'>
-                            <div className={`grid md:grid-cols-[2fr_1fr_repeat(3,1fr)] gap-4 mt-2`}>
+                            <div className={`grid md:grid-cols-[repeat(5,1fr)_150px] gap-4 mt-2`}>
                                 <SelectInput
                                     id='user_id'
                                     label='Customer Name'
@@ -497,14 +511,15 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
                                         handleChangeSelect('user_id', selected);
 
                                         // cari data lengkap customer yang dipilih
-                                        const selectedCustomer = optionsCustomer.find((item: any) => item.value === selected);
+                                        const customer = optionsCustomer.find((item: any) => item.value === selected);
 
-                                        if (selectedCustomer) {
+                                        if (customer) {
+                                            setSelectedCustomer(customer)
                                             setFormData((prev) => ({
                                                 ...prev,
-                                                user_id: selectedCustomer.value,
-                                                billing_address: selectedCustomer.billing_address,
-                                                shipping_address: selectedCustomer.shipping_address
+                                                user_id: customer.value,
+                                                billing_address: customer.billing_address,
+                                                shipping_address: customer.shipping_address
                                             }));
                                         }
                                     }}
@@ -525,15 +540,16 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
                                     )}
                                     required
                                 />
-                                {/* <Input
-                                    id='customer_name'
-                                    label='Customer Name'
+                                <Input
+                                    id='invoice_number'
+                                    label='Invoice Number'
                                     type='text'
-                                    placeholder='Input Customer Name'
+                                    placeholder='Input invoice number'
                                     onChange={handleChange}
-                                    value={formData.customer_name}
+                                    value={formData.invoice_number}
                                     required
-                                /> */}
+                                />
+
                                 {/* <SelectInput
                                         id='payment_method'
                                         label='Payment Method'
@@ -680,6 +696,7 @@ const FormOrder: React.FC<FormProps> = ({ mode, initialValues, slug }) => {
                                             onRemove={() => handleRemoveRow(index)}
                                             length={formData.items.length}
                                             taxType={formData.tax_type}
+                                            customerPrice={selectedCustomer}
                                         />
                                     )
                                 })

@@ -6,7 +6,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { routes } from "@/config/routes";
 import { useMutationBase } from "./mutation-base";
 
-export function useGetProduct(page: number, perPage: number) {
+export function useGetProduct(page?: number, perPage?: number) {
     return useQuery({
         queryKey: ['products', page, perPage],
         queryFn: async () => getProduct({ page, perPage }),

@@ -33,16 +33,17 @@ const ProductPrice = ({
             const res = await getPriceLevel()
             if (res.data) {
                 const priceLevel = res.data.filter((item: any) => {
-                    return item.brandId == brandId && item.categoryId == categoryId || null
+                    console.log(item.brand_id, brandId, item.category_id, categoryId)
+                    return item.brand_id == brandId && item.category_id == categoryId || null
                 })
                 if (priceLevel[0]) {
                     const buying_price = Number(formDataCreate.tab_price.buying_price)
-                    formDataCreate.tab_price.rrp = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].rrp_price || 0) / 100)) : 0
-                    formDataCreate.tab_price.trade = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].trade_price || 0) / 100)) : 0
-                    formDataCreate.tab_price.silver = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].silver_price || 0) / 100)) : 0
-                    formDataCreate.tab_price.gold = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].gold_price || 0) / 100)) : 0
-                    formDataCreate.tab_price.platinum = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].platinum_price || 0) / 100)) : 0
-                    formDataCreate.tab_price.diamond = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].diamond_price || 0) / 100)) : 0
+                    formDataCreate.tab_price.rrp = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].recommended_retail_price_percentage || 0) / 100)) : 0
+                    formDataCreate.tab_price.trade = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].trade_percentage || 0) / 100)) : 0
+                    formDataCreate.tab_price.silver = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].silver_percentage || 0) / 100)) : 0
+                    formDataCreate.tab_price.gold = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].gold_percentage || 0) / 100)) : 0
+                    formDataCreate.tab_price.platinum = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].platinum_percentage || 0) / 100)) : 0
+                    formDataCreate.tab_price.diamond = buying_price ? mathFloor(buying_price * (1 + (priceLevel[0].diamond_percentage || 0) / 100)) : 0
                 } else {
                     notifyError("Price Level does'nt available. Please input manually")
                     formDataCreate.tab_price.rrp = 0

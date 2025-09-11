@@ -12,6 +12,7 @@ import { TrashIcon, TrashIconRed } from '@public/icon';
 import Button from '@/components/button'
 import Modal from '@/components/modal'
 import { CalculatorOutlined } from '@ant-design/icons';
+import { useGetProduct } from '@/core/hooks/use-product';
 export interface ProductForm {
     // sku: string
     // name: string
@@ -33,8 +34,9 @@ export interface ProductForm {
     description: string
     buy_price: number
     price: number
+    profit?: number
     qty: number
-    tax_id: string
+    tax_id: string | null
     tax_value: number
     tax_amount: number
     total_amount: number
@@ -58,6 +60,7 @@ interface ProductInputProps {
     index: number;
     length?: number
     taxType?: string
+    customerPrice?: any
 }
 
 const ProductInput = ({
@@ -67,12 +70,16 @@ const ProductInput = ({
     onRemove,
     onChange,
     length,
-    taxType
+    taxType,
+    customerPrice
 }: ProductInputProps) => {
     const [optionsTax] = useAtom(taxSetAtom)
+    const { data, isLoading, refetch } = useGetProduct()
     const [items, setItems] = useState([])
     const [buyPriceHidden, setBuyPriceHidden] = useState(true)
     const [profitHidden, setprofitHidden] = useState(true)
+    const [profitAmount, setProfitAmount] = useState(0)
+    const [selectedProduct, setSelectedProduct] = useState<any | null>(null)
     const [taxError, setTaxError] = useState('');
     const [openModal, setOpenModal] = useState(false)
     const [modalType, setModalType] = useState<'product' | 'service' | null>(null)
@@ -88,19 +95,30 @@ const ProductInput = ({
         platinum: 0,
         diamond: 0,
     })
+    const optionProduct = data && data.data.length > 0 ? data?.data?.map((item: any) => ({
+        label: item.sku,
+        value: item.sku,
+        data: item
+    })) : []
+
     const handleProductChange = (e: any) => {
         const { id, value } = e.target;
 
         let updatedProductForm = {
             ...productForm,
-            [id]: value
+            [id]: id === 'qty' || id === 'price' ? Number(value) : value
         };
 
         if (id === 'qty' || id === 'price') {
-            const qty = Number(id === 'qty' ? value : updatedProductForm.qty);
-            const price = Number(id === 'price' ? value : updatedProductForm.price);
+            const qty = Number(updatedProductForm.qty);
+            const price = Number(updatedProductForm.price);
             const total = qty * price;
+            const profit = total - selectedProduct?.buy_price
+            setProfitAmount(profit)
+            updatedProductForm.qty = Number(qty)
+            updatedProductForm.price = Number(price)
             updatedProductForm.total_amount = Number(total.toFixed(2))
+            updatedProductForm.profit = Number(profit.toFixed(2))
         }
 
         onChange(updatedProductForm);
@@ -126,13 +144,17 @@ const ProductInput = ({
             [id]: value
         };
 
-        console.log(id, value)
         if (id == 'code') {
-            const selectedProduct: any = items.find((p: any) => p.sku === value);
-            if (selectedProduct) {
-                updatedProductForm.name = selectedProduct.name;
-                updatedProductForm.product_id = selectedProduct.id;
-                updatedProductForm.price = selectedProduct.price;
+            const product: any = data?.data?.find((p: any) => p.sku === value);
+            const priceLevel = customerPrice?.price_level || 'recommended_retail';
+            const priceKey = `${priceLevel}_price`;
+            const price = product[priceKey] ?? 0;
+            console.log(price, priceKey, priceLevel, product)
+            setSelectedProduct(product)
+            if (product) {
+                updatedProductForm.name = product.name;
+                updatedProductForm.product_id = product.id;
+                updatedProductForm.price = price;
             }
         }
 
@@ -167,8 +189,6 @@ const ProductInput = ({
         }
     };
 
-    console.log(items)
-
     const handleOpenModal = (type: 'product' | 'service') => {
         setModalType(type)
         setOpenModal(true)
@@ -186,28 +206,7 @@ const ProductInput = ({
     //     onAddProduct()
     // };
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await getProduct()
-                if (res.data) {
-                    setItems(res.data)
-                }
 
-            } catch (error) {
-                console.error(error)
-            }
-        }
-
-        fetchData()
-
-    }, [])
-
-    useEffect(() => {
-
-    }, [])
-
-    console.log(optionsTax)
     return (
         <div className='flex flex-col gap-4'>
             <Modal
@@ -330,7 +329,6 @@ const ProductInput = ({
                         <Button
                             label='Save'
                             onClick={() => console.log('hi')}
-                            style={{ padding: '1.2rem 2rem' }}
                         />
 
                     </div>
@@ -344,13 +342,7 @@ const ProductInput = ({
                     label='SKU'
                     value={productForm.code || undefined}
                     onChange={(val) => handleChangeSelect('code', val)}
-                    options={[
-                        ...items.map((item: any) => ({
-                            label: item.sku,
-                            value: item.sku,
-                            data: item
-                        }))
-                    ]}
+                    options={optionProduct}
                     popupRender={(options: any) => (
                         <>
                             {options}
@@ -411,11 +403,12 @@ const ProductInput = ({
                             <div onClick={() => setBuyPriceHidden(true)} className='flex flex-col gap-1 cursor-pointer text-xs w-full'>
                                 <div className='flex justify-between'>
                                     <span>Buy Price</span>
-                                    <span>$80.0</span>
+                                    <span>${selectedProduct?.buy_price || 0}</span>
                                 </div>
                                 <div className='flex justify-between'>
+                                    {/* dari orderan yang pernah sebelumnya kalau ada */}
                                     <span>Last Price</span>
-                                    <span>$97.0</span>
+                                    <span>${0}</span>
                                 </div>
                             </div>
                     }
@@ -432,7 +425,7 @@ const ProductInput = ({
                 /> */}
                 <Input
                     id='qty'
-                    type='text'
+                    type='number'
                     label='QTY'
                     value={productForm.qty}
                     onChange={handleProductChange}
@@ -479,8 +472,8 @@ const ProductInput = ({
                                 Reveal
                             </button> :
                             <div onClick={() => setprofitHidden(true)} className='flex gap-1 cursor-pointer text-xs w-full justify-between '>
-                                <span>Reveal Profit</span>
-                                <span>$80.0</span>
+                                <span>Profit</span>
+                                <span>${profitAmount}</span>
                             </div>
                     }
                 </div>
