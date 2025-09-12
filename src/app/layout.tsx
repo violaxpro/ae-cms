@@ -1,4 +1,3 @@
-
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/api/auth/[...nextauth]/auth-options';
 import AuthProvider from '@/app/api/auth/[...nextauth]/auth-provider';
@@ -7,6 +6,8 @@ import { inter, lexendDeca } from './fonts';
 import cn from '@/core/utils/class-names';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { Providers } from './provider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 // import NextProgress from '@/core/components/next-progress';
 
 // styles
@@ -18,6 +19,8 @@ export const metadata = {
     title: siteConfig.title,
     description: siteConfig.description,
 };
+
+const queryClient = new QueryClient()
 
 export default async function RootLayout({
     children,
@@ -42,7 +45,9 @@ export default async function RootLayout({
                     {children}
                 </ThemeProvider> */}
                 {/* </AuthProvider> */}
-                <Providers session={session}>{children}</Providers>
+                <Providers session={session}>
+                    {children}
+                </Providers>
             </body>
         </html >
     );

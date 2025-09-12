@@ -9,6 +9,7 @@ import logoImg from '@public/logo/Logo Xpro Group.png';
 import { signIn } from 'next-auth/react'
 import { routes } from '@/config/routes'
 import { useRouter } from 'next/navigation'
+import VectorLogo from '@public/image/Vector Logo Xpro.png'
 
 const index = () => {
     const router = useRouter()
@@ -36,24 +37,20 @@ const index = () => {
         if (res?.error) {
             alert("Login gagal: " + res.error);
         } else {
-            // redirect manual ke dashboard
-            router.push(routes.eCommerce.products)
+            router.push(routes.eCommerce.dashboard)
         }
     };
 
     return (
         <div className='bg-white container-login flex h-screen'>
             <div className='grid md:grid-cols-[2fr_1fr] gap-5 p-5'>
-                <div className='flex flex-col justify-center gap-6 p-6'>
+                <div className='flex flex-col justify-center gap-6 md:p-6 p-4'>
                     <div className='flex flex-col gap-3'>
                         <Image
                             src={logoImg}
                             alt="logo"
-                            // width={300}
                             width={150}
                             height={0}
-                        // sizes="100vw"
-                        // className="w-full h-auto object-contain max-h-[80px]"
                         />
                         <h1 className='font-semibold text-4xl'>Welcome Back</h1>
                         <span className='text-black'>Access your account and manage alarm system.</span>
@@ -111,7 +108,7 @@ const index = () => {
                         />
                         <div className='text-center'>
                             <span className='text-gray-500'>
-                                Don't have account?
+                                {"Don't have account?"}
                                 <Link className='text-black' href='#'>
                                     Register Here
                                 </Link>
@@ -120,8 +117,15 @@ const index = () => {
                     </div>
                 </div>
                 <div className="h-full">
-                    <div className="!bg-[#105286] bg-gradient-to-b from-[#1672B9] to-[#0A3353] p-3 h-full rounded-xl flex flex-col justify-end text-white">
-                        <div className='p-5'>
+                    <div className="relative !bg-[#105286] bg-gradient-to-b from-[#1672B9] to-[#0A3353] p-3 h-full rounded-xl flex flex-col justify-end  overflow-hidden text-white">
+                        <div className="absolute top-1 -left-10">
+                            <Image
+                                src={VectorLogo}
+                                alt='logo'
+                                width={200}
+                            />
+                        </div>
+                        <div className='p-5 **:relative z-10'>
                             <h4 className="font-semibold text-2xl">
                                 One Platform to Manage Your Business
                             </h4>

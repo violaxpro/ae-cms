@@ -177,7 +177,6 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
     };
 
     const handleLogout = async () => {
-
         if (isLoggingOut) return;
         try {
             setIsLoggingOut(true);
@@ -185,14 +184,13 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
             if (typeof window !== 'undefined') {
                 sessionStorage.clear();
             }
-
+            console.log('masuk')
             setIsRunning(false);
             setSecond(0);
 
             await signOut({
-                callbackUrl: routes.signIn,
+                callbackUrl: '/auth/signin',
                 redirect: true
-
             });
 
         } catch (error) {
@@ -200,7 +198,7 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
             // Fallback: force redirect if signOut fails
             localStorage.clear();
             sessionStorage.clear();
-            router.push(routes.signIn);
+            router.push('/auth/signin');
 
         } finally {
             setIsLoggingOut(false);
@@ -388,7 +386,7 @@ export default function HeaderLayout({ onOpenDrawer }: { onOpenDrawer?: () => vo
                         menu={{
                             items: [
                                 { key: 'profile', label: 'Profile' },
-                                { key: 'logout', label: 'Logout' },
+                                { key: 'logout', label: 'Logout', onClick: handleLogout },
                             ],
                         }}
                     >

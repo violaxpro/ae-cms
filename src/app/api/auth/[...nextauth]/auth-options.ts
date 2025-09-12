@@ -62,27 +62,8 @@ export const authOptions: NextAuthOptions = {
             password: credentials.password,
           }
           const response = await axios.post(loginEndpoint, payload);
-
           const apiResponse = response.data;
-          console.log(apiResponse)
-
-
-
-          console.log("==================HASIL AUTH=====================")
-
-          console.log(apiResponse)
-
-          console.log("==================HASIL AUTH=====================")
-
-
-
           if (apiResponse && apiResponse.data) {
-
-            // Return the user object with the correct structure
-
-            // axios.defaults.headers.common['Authorization'] = `Bearer ${apiResponse.data.accessToken}`;
-
-            // http.defaults.headers.common['Authorization'] = `Bearer ${apiResponse.data.accessToken}`;
             return {
               id: apiResponse.data.id,
               accessToken: apiResponse.data.access_token,
@@ -94,11 +75,7 @@ export const authOptions: NextAuthOptions = {
           }
 
         } catch (error: any) {
-
           const errorMessage = error.response?.data?.message || 'Invalid credentials';
-
-          console.log(error.response)
-
           throw new Error(errorMessage);
 
         }
